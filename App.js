@@ -1,11 +1,13 @@
 // App.js
 import React from 'react';
-import { AuthProvider } from './contexts/AuthContext';
-import RootNavigator from './navigation/RootNavigator';
+import { AuthProvider } from './src/contexts/AuthContext';
+import RootNavigator from './src/navigation/RootNavigator';
+import BackgroundAudio from "./src/components/BackgroundAudio";
 
 export default function App() {
   return (
     <AuthProvider>
+      <BackgroundAudio />
       <RootNavigator />
     </AuthProvider>
   );

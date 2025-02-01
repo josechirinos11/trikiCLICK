@@ -1,0 +1,24 @@
+
+usar web
+npx expo install react-dom react-native-web @expo/metro-runtime
+
+usar firerbase para autenticaciones
+expo install firebase
+
+
+npm install @react-native-async-storage/async-storage
+
+
+
+en el game
+npm install expo-location react-native-maps
+
+
+en el mapa
+npm install react-native-maps-clustering
+
+
+sonido
+npx expo install expo-av
+
+
