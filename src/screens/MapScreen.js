@@ -50,6 +50,8 @@ export default function MapScreen({ navigation }) {
 
   useEffect(() => {
 
+    centerMapOnUser();
+
     const fetchPlayerNames = async () => {
       // Si no hay jugadores, no hacemos nada
       if (jugadores.length === 0) return;
@@ -85,7 +87,9 @@ export default function MapScreen({ navigation }) {
 
 
   useEffect(() => {
+    centerMapOnUser();
 
+    // traigo el alias del jugador
     const fetchPlayerName = async () => {
       const user = auth.currentUser;
       if (!user) return;
@@ -97,77 +101,30 @@ export default function MapScreen({ navigation }) {
     };
 
     fetchPlayerName();
-
-    const getUserLocation = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-      const locationSubscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.High },
-        (location) => {
-          setUserLocation(location.coords);
-        }
-      );
-      return () => locationSubscription.remove();
-    };
-
     getUserLocation();
     setUserActiveStatus(true);
 
+    // escuchamos cambios en locations y devolver los jugadores activos
     const unsubscribe = onSnapshot(collection(db, 'locations'), async (snapshot) => {
-     // console.log("📂 Datos recibidos de Firestore:", snapshot.docs.length);
-
       const rawUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      //console.log("👥 Usuarios crudos:", rawUsers);
-
       const updatedUsers = await Promise.all(snapshot.docs.map(async (doc) => {
         const userData = doc.data();
-        // console.log("👤 Procesando usuario:", userData);
         procesarJugador(userData, setjugadores);
-
-        //   if (!userData.activo) {
-        //    console.log("🚫 Usuario inactivo:", userData.id);
-        //    return null;
-        //   }
-
         const userConfigRef = doc(db, 'gameConfigs', doc.id);
-        //7console.log("📄 userConfigRef del usuario:", userConfigRef);
         const configSnap = await getDoc(userConfigRef);
-       // console.log("📄 configSnap del usuario:", configSnap);
-
-
         return userData
-
-        //   return {
-        //    id: doc.id,
-        //    latitude: userData.latitude,
-        //    longitude: userData.longitude,
-        //   playerName: configSnap.exists() ? configSnap.data().playerName : 'Desconocido',
-        //  };
       }));
-
-     // console.log(`✅ Jugadores sin filtros:`, updatedUsers);
-
       const activePlayers = updatedUsers
         .filter(user => user !== null && user.latitude && user.longitude)
         .map(user => ({
           ...user,
           playerName: user.playerName || "Desconocido",
         }));
-
-     // console.log("🎮 Jugadores activos después del filtrado:", activePlayers);
-
-      if (activePlayers.length === 0) {
-     //   console.warn("⚠️ No hay jugadores activos después del filtrado.");
-      }
-
-      //setUsers(activePlayers);
       setUsers(activePlayers.filter(user => user.id !== auth.currentUser?.uid));
-
     });
 
+    //Retornamos los jugadores activos
     const fetchPlayerNames = async () => {
-      //if (jugadores.length === 0) return; // Si no hay jugadores, no hacemos nada
-
       const jugadoresActualizados = await Promise.all(
         jugadores.map(async (jugador) => {
           if (!jugador.uid) return null; // ❌ Evitar errores si no tiene UID
@@ -184,17 +141,9 @@ export default function MapScreen({ navigation }) {
           return { ...jugador, playerName: "Desconocido" }; // 🔹 Si no existe, nombre por defecto
         })
       );
-
-      // Filtrar jugadores válidos (evitar `null`)
       setjugadoresGame(jugadoresActualizados.filter(jugador => jugador !== null));
     };
-
     fetchPlayerNames()
-
-
-
-
-
 
 
     return () => {
@@ -210,17 +159,12 @@ export default function MapScreen({ navigation }) {
   useEffect((jugadores) => {
     const user = auth.currentUser;
     if (!user) return;
-  
     const solicitudesRef = collection(db, "gameRequests");
-  
     const unsubscribe = onSnapshot(solicitudesRef, async (snapshot) => {
       let solicitudEncontrada = false;
-  
-      // Procesar las solicitudes de juego
       for (const doc of snapshot.docs) {
         const data = doc.data();
-       // console.log("📥 Datos que se reciben de la base de datos gameRequests:  ", data);
-  
+
         // Si la solicitud está dirigida al usuario actual y está en estado "pending"
         if (data.to === user.uid && data.status === "pending") {
           if (!solicitudPendiente || solicitudPendiente.from !== data.from) {
@@ -229,24 +173,24 @@ export default function MapScreen({ navigation }) {
           }
           solicitudEncontrada = true;
         }
-  
+
         // Si la solicitud es del usuario actual y está en estado "pending"
         if (data.from === user.uid && data.status === "pending") {
           setEsperandoRespuesta(true); // El usuario está esperando una respuesta
           solicitudEncontrada = true;
         }
-  
+
         // Si la solicitud ya no está en estado "pending", significa que fue aceptada o rechazada
         if (data.status !== "pending" && (data.to === user.uid || data.from === user.uid)) {
-        //  console.log(`🎮 jugador activo : ${jugadores} `);
-
-        //  const jugador = jugadores.find(jugador => jugador.uid === data.from); // 🎮
-         
           setEsperandoRespuesta(false); // El usuario ya no está esperando una respuesta
-          navigation.navigate("LobbyScreen", { 
-            jugadorID: data.from,
-          });
-  
+          console.log(`🎮 AAAAAAYYYYYYUUUUUUUUDAAAAAAAAAAAAAAA `);
+          if (navigation) {
+            navigation.navigate('Lobby', { jugadorID: user.uid });
+          
+          } else {
+            console.error("🚨 navigation no está definido en MapScreen");
+          };
+
           if (solicitudPendiente) {
             // Eliminar la solicitud de la base de datos
             const solicitudRef = doc(db, "gameRequests", `${solicitudPendiente.from}_${solicitudPendiente.to}`);
@@ -260,17 +204,27 @@ export default function MapScreen({ navigation }) {
           }
         }
       }
-  
+
       // Si no se encontró ninguna solicitud activa, ponemos el estado de esperandoRespuesta a false
       if (!solicitudEncontrada) {
         setEsperandoRespuesta(false); // La solicitud fue eliminada o rechazada
       }
     });
-  
+
     return () => unsubscribe(); // Limpiar el suscriptor cuando el componente se desmonte
   }, []);
-  
 
+  const getUserLocation = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return;
+    const locationSubscription = await Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.High },
+      (location) => {
+        setUserLocation(location.coords);
+      }
+    );
+    return () => locationSubscription.remove();
+  };
 
   const centerMapOnUser = () => {
     if (userLocation && mapRef.current) {
@@ -290,7 +244,6 @@ export default function MapScreen({ navigation }) {
   // crea una solicitud de juego en Firestore entre el usuario y otro jugador
   const enviarSolicitudJuego = async (jugador, playerName) => {
     const user = auth.currentUser; // optenemos informacion del usuario athenticado
-
     if (!user) return;
 
     const solicitudRef = doc(db, "gameRequests", `${user.uid}_${jugador.uid}`);
@@ -317,13 +270,13 @@ export default function MapScreen({ navigation }) {
     try {
       await updateDoc(solicitudRef, { status: "accepted" });
 
-     // console.log("✅ Partida aceptada, iniciando juego...");
-     // navigation.navigate("Game", { jugador1: solicitudPendiente.from, jugador2: solicitudPendiente.to });
-
-      navigation.navigate("LobbyScreen", { 
-        jugadorID: user.uid, 
       
-      });
+      console.log(`🎮 AAAAAAYYYYYYUUUUUUUUDAAAAAAAAAAAAAAA boton `);
+      if (navigation) {
+        navigation.navigate('Lobby', { jugadorID: user.uid });
+      } else {
+        console.error("🚨 navigation no está definido en MapScreen");
+      };
 
     } catch (error) {
       console.error("❌ Error al aceptar la partida:", error);
@@ -343,12 +296,6 @@ export default function MapScreen({ navigation }) {
       console.error("❌ Error al rechazar la partida:", error);
     }
   };
-
-
-
-
-
-
   jugadoresGame.forEach(jugador => {
     console.log(`🎮 Nombre: ${jugador.playerName} `);
   });

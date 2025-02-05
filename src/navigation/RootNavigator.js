@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -7,10 +7,11 @@ import GameScreen from '../screens/GameScreen';
 import GameSetupScreen from '../screens/GameSetupScreen';
 import { useAuth } from '../contexts/AuthContext';
 import MapScreen from '../screens/MapScreen';
-import Shots from '../screens/game/Shots';
 import LobbyScreen from '../screens/LobbyScreen';
+import ShotsScreen from '../screens/game/ShotsScreen';
+import SalaScreen from '../screens/SalaScreen';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const { user } = useAuth();
@@ -23,8 +24,9 @@ export default function RootNavigator() {
             <Stack.Screen name="Game" component={GameScreen} />
             <Stack.Screen name="GameSetup" component={GameSetupScreen} />
             <Stack.Screen name="Map" component={MapScreen} />
-            <Stack.Screen name="LobbyScreen" component={LobbyScreen} />
-            <Stack.Screen name="Shots" component={Shots} />
+            <Stack.Screen name="Lobby" component={LobbyScreen} />
+            <Stack.Screen name="Shots" component={ShotsScreen} />
+            <Stack.Screen name="Sala" component={SalaScreen} />
           </>
         ) : (
           <>

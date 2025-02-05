@@ -1,14 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, TextInput, FlatList, Alert } from 'react-native';
 import { Client } from 'colyseus.js';
-import { useGameContext } from '../contexts/GameContext';
+import useGameContext from './GameScreen';
 import { useNavigation } from '@react-navigation/native';
 //const LOBBY_SERVER = 'wss://trikiclickbackend.onrender.com';
 const LOBBY_SERVER = 'ws://192.168.1.132:2567'; // Usa ws:// para WebSocket
 
-export default function LobbyScreen({ navigation, route }) {
-    const { clientContext, setClientContext, roomContext, setRoomContext } = useGameContext();
-    const { jugadorID } = route.params || {}; // Evita error si params es undefined
+export default function Lobby({ route, navigation }) {
+  const { clientContext, setClientContext, roomContext, setRoomContext } = useGameContext();
+  const { jugadorID } = route.params;
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState({});
   const [chatMessages, setChatMessages] = useState([]);
@@ -18,7 +18,7 @@ export default function LobbyScreen({ navigation, route }) {
   const [isInRoom, setIsInRoom] = useState(false);
   //console.log("id del jugador >>>>>>>   :    ", jugadorID);
 
-  //const navigation = useNavigation();
+  
 
 
   const clientRef = useRef(null);
@@ -62,7 +62,14 @@ export default function LobbyScreen({ navigation, route }) {
       roomInstance.onMessage('chat', msg => setChatMessages(prev => [...prev, msg]));
 
       // ✅ Recibir señal para empezar el juego
-      roomInstance.onMessage('start_game', () => navigation.navigate('Shots', { jugadorID : jugadorID }));
+      roomInstance.onMessage('start_game', () => {
+        if (navigation) {
+            navigation.navigate('Shots', { jugadorID });
+        } else {
+            console.error("🚨 navigation no está definido en onMessage('start_game')");
+        }
+    });
+    
 
       roomInstance.onMessage('heartbeat', () => console.log("💓 Latido recibido"));
 
