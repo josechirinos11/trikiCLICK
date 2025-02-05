@@ -7,6 +7,8 @@ import GameScreen from '../screens/GameScreen';
 import GameSetupScreen from '../screens/GameSetupScreen';
 import { useAuth } from '../contexts/AuthContext';
 import MapScreen from '../screens/MapScreen';
+import Shots from '../screens/game/Shots';
+import LobbyScreen from '../screens/LobbyScreen';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +23,8 @@ export default function RootNavigator() {
             <Stack.Screen name="Game" component={GameScreen} />
             <Stack.Screen name="GameSetup" component={GameSetupScreen} />
             <Stack.Screen name="Map" component={MapScreen} />
+            <Stack.Screen name="LobbyScreen" component={LobbyScreen} />
+            <Stack.Screen name="Shots" component={Shots} />
           </>
         ) : (
           <>

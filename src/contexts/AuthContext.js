@@ -10,6 +10,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // Estado del usuario
   const [loading, setLoading] = useState(true); // Indica si la app está cargando
 
+  const [clientContext, setClientContext] = useState(null);
+  const [roomContext, setRoomContext] = useState(null);
+
   useEffect(() => {
     // Escucha cambios en la autenticación
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -33,7 +36,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout}}>
       {!loading && children}
     </AuthContext.Provider>
   );

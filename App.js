@@ -7,8 +7,7 @@ import BackgroundAudio from "./src/components/BackgroundAudio";
 export default function App() {
   return (
     <AuthProvider>
-      <BackgroundAudio />
-      <RootNavigator />
+        <RootNavigator />
     </AuthProvider>
   );
 }

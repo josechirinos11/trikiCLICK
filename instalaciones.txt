@@ -22,3 +22,14 @@ sonido
 npx expo install expo-av
 
 
+
+para juego 3d
+
+
+expo install expo-gl three
+npm install @react-three/fiber @react-three/drei @react-three/cannon
+
+para juego y usar realtime en backend y desplegado en RENDER
+npm install colyseus.js // para ambos front y backend
+npm install @colyseus/schema
+
