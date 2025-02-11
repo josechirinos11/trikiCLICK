@@ -20,6 +20,13 @@ export async function startTrackingLocation() {
       const user = auth.currentUser;
       if (!user) return;
 
+              //Asegura que user.uid siempre sea una cadena de texto
+              if (!user || !user.uid || typeof user.uid !== 'string') {
+                console.error("Error: user.uid no es válido", user);
+                navigation.replace('Login');
+                return;
+              }
+
       const userRef = doc(db, 'locations', user.uid);
       await setDoc(userRef, {
         uid: user.uid, // 🔹 Guardar el UID dentro del documento
